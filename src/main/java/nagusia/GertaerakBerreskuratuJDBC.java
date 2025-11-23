@@ -3,6 +3,8 @@ package nagusia;
 import java.sql.*;
 import java.util.Date;
 
+import eredua.domeinua.Erabiltzailea;
+
 public class GertaerakBerreskuratuJDBC {
 	public static void main(String[] args) {
 		Connection c;
@@ -24,4 +26,23 @@ public class GertaerakBerreskuratuJDBC {
 			e.printStackTrace();
 		}
 	}
+	
+	public static String getErabiltzaileaJDBC(Erabiltzailea e) {
+		Connection c;
+		PreparedStatement s;
+		ResultSet rs;
+		try {
+		Class.forName("org.mariadb.jdbc.Driver");
+		c = DriverManager.getConnection("jdbc:mariadb://localhost/gertaerak", "root", "admin");
+		s = c.prepareStatement("SELECT * FROM Erabiltzailea WHERE izena=?");
+		s.setString(1, e.getIzena());
+		rs = s.executeQuery();
+		if (rs.next())
+		return (String) (rs.getString("izena") + "/" + rs.getString("pasahitza") + "/" +
+		rs.getString("MOTA"));
+		} catch (Exception ex) {
+		ex.printStackTrace();
+		}
+		return "--/--/--";
+		}
 }
