@@ -3,12 +3,19 @@ package nagusia;
 import eredua.JPAUtil;
 import eredua.domeinua.Erabiltzailea;
 import eredua.domeinua.LoginGertaera;
+import jakarta.validation.ConstraintViolationException;
+
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
+
+import org.hibernate.PropertyValueException;
+import org.hibernate.Session;
 
 import java.util.*;
 
@@ -45,8 +52,19 @@ public class GertaerakDataAccess {
 			e.setErabiltzailea((Erabiltzailea) em.find(Erabiltzailea.class, erabiltzailea));
 			e.setLogin(login);
 			e.setData(data);
+			// if (data!=null) e.setData(data);
+			// else throw new Exception("data falta da");
 			em.persist(e);
 			em.getTransaction().commit();
+		} catch (PersistenceException ex) {
+			e = null;
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			if (ex.getCause() instanceof ConstraintViolationException
+					|| ex.getCause() instanceof PropertyValueException) {
+				System.out.println("Errorea: data falta da");
+			}
 		} catch (Exception ex) {
 			System.out.println("Errorea: erabiltzailea ez da existitzen: " + ex.toString());
 			e = null;
@@ -100,59 +118,138 @@ public class GertaerakDataAccess {
 		EntityManager em = JPAUtil.getEntityManager();
 		List<LoginGertaera> result = new ArrayList<LoginGertaera>();
 		try {
-		em.getTransaction().begin();
-		TypedQuery<LoginGertaera> q =
-		 em.createQuery("select lg from LoginGertaera lg inner join lg.erabiltzailea e where e.izena= :erabiltzaileaIzena",LoginGertaera.class);
-		q.setParameter("erabiltzaileaIzena", erabiltzaileaIzena);
-		result = q.getResultList();
-		System.out.println("result: "+result);
-		em.getTransaction().commit();
+			em.getTransaction().begin();
+			TypedQuery<LoginGertaera> q = em.createQuery(
+					"select lg from LoginGertaera lg inner join lg.erabiltzailea e where e.izena= :erabiltzaileaIzena",
+					LoginGertaera.class);
+			q.setParameter("erabiltzaileaIzena", erabiltzaileaIzena);
+			result = q.getResultList();
+			System.out.println("result: " + result);
+			em.getTransaction().commit();
 		} catch (Exception e) {
-		if (em.getTransaction().isActive()) {
-		em.getTransaction().rollback();}
-		 throw e;
-		} finally {em.close();}
-		return result;}
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
+		} finally {
+			em.close();
+		}
+		return result;
+	}
 
 	public List<LoginGertaera> getLoginGertaerakv2(String erabiltzaileaIzena) {
 		EntityManager em = JPAUtil.getEntityManager();
 		List<LoginGertaera> result = new ArrayList<LoginGertaera>();
 		try {
-		em.getTransaction().begin();
-		TypedQuery<LoginGertaera> q =
-		em.createQuery("select lg from LoginGertaera lg where lg.erabiltzailea.izena=:erabiltzaileaIzena",LoginGertaera.class);
-		q.setParameter("erabiltzaileaIzena", erabiltzaileaIzena);
-		result = q.getResultList();
-		System.out.println("result: "+result);
-		em.getTransaction().commit();
+			em.getTransaction().begin();
+			TypedQuery<LoginGertaera> q = em.createQuery(
+					"select lg from LoginGertaera lg where lg.erabiltzailea.izena=:erabiltzaileaIzena",
+					LoginGertaera.class);
+			q.setParameter("erabiltzaileaIzena", erabiltzaileaIzena);
+			result = q.getResultList();
+			System.out.println("result: " + result);
+			em.getTransaction().commit();
 		} catch (Exception e) {
-		 if (em.getTransaction().isActive()) {
-		em.getTransaction().rollback();}
-		 throw e;
-		} finally {em.close();}
-		return result;}
-	
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
+		} finally {
+			em.close();
+		}
+		return result;
+	}
+
 	public List<LoginGertaera> getLoginGertaerakv3(String erabiltzaileaIzena) {
 		EntityManager em = JPAUtil.getEntityManager();
 		List<LoginGertaera> result = new ArrayList<LoginGertaera>();
 		try {
-		 em.getTransaction().begin();
-		 CriteriaBuilder cb = em.getCriteriaBuilder();
-		 CriteriaQuery<LoginGertaera> query = cb.createQuery(LoginGertaera.class);
-		 Root<LoginGertaera> loginGertaera = query.from(LoginGertaera.class);
-		 Join<LoginGertaera, Erabiltzailea> erabiltzailea = loginGertaera.join("erabiltzailea");
-		 query.select(loginGertaera).where(cb.equal(erabiltzailea.get("izena"),erabiltzaileaIzena));
-		 result = em.createQuery(query).getResultList();
-		 System.out.println("result: "+result);
-		 em.getTransaction().commit();
+			em.getTransaction().begin();
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<LoginGertaera> query = cb.createQuery(LoginGertaera.class);
+			Root<LoginGertaera> loginGertaera = query.from(LoginGertaera.class);
+			Join<LoginGertaera, Erabiltzailea> erabiltzailea = loginGertaera.join("erabiltzailea");
+			query.select(loginGertaera).where(cb.equal(erabiltzailea.get("izena"), erabiltzaileaIzena));
+			result = em.createQuery(query).getResultList();
+			System.out.println("result: " + result);
+			em.getTransaction().commit();
 		} catch (Exception e) {
-		 if (em.getTransaction().isActive()) {
-		em.getTransaction().rollback(); }
-		throw e;
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw e;
 		} finally {
-		if (em.isOpen()) { em.close(); }
+			if (em.isOpen()) {
+				em.close();
+			}
 		}
-		 return result; }
+		return result;
+	}
+
+	public boolean deleteErabiltzailea(String erabiltzailea) {
+		EntityManager em = JPAUtil.getEntityManager();
+		try {
+			em.getTransaction().begin();
+			Erabiltzailea e = (Erabiltzailea) em.find(Erabiltzailea.class, erabiltzailea);
+			// Query q = em.createQuery("delete from LoginGertaera where erabiltzailea =
+			// :erab");
+			// q.setParameter("erab", e);
+			// q.executeUpdate();
+			em.remove(e);
+			em.getTransaction().commit();
+		} catch (Exception e) {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+				System.out.println("Errorea: " + e.toString());
+				return false;
+			}
+		} finally {
+			if (em.isOpen()) {
+				em.close();
+			}
+		}
+		return true;
+	}
+
+	public Erabiltzailea createAndStoreErabiltzaileaLoginGertaeraBatekin(String izena, String pasahitza, String mota,
+		boolean login, Date data) {
+		EntityManager em = JPAUtil.getEntityManager();
+		try {
+			em.getTransaction().begin();
+			
+			Erabiltzailea e = new Erabiltzailea();
+			e.setIzena(izena);
+			e.setPasahitza(pasahitza);
+			e.setMota(mota);
+			
+			LoginGertaera lg = new LoginGertaera();
+			lg.setErabiltzailea(e);
+			lg.setLogin(login);
+			lg.setData(data);
+			
+		    //e.getGertaerak().add(lg);
+			//Set<LoginGertaera> gertaerak = new HashSet<>();
+			//gertaerak.add(lg);
+			//e.setGertaerak(gertaerak);
+			
+			HashSet<LoginGertaera> gs = new HashSet<>();
+	        gs.add(lg);
+	        e.setGertaerak(gs); 
+	        
+			em.persist(e);
+			//em.persist(lg);
+			
+			em.getTransaction().commit();
+			return e;
+		} catch (Exception ex) {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+			throw ex;
+		} finally {
+			em.close();
+		}
+	}
 
 	public static void main(String[] args) {
 		GertaerakDataAccess e = new GertaerakDataAccess();
@@ -177,6 +274,17 @@ public class GertaerakDataAccess {
 		System.out.println("3.3.2 => " + erab.getIzena() + "ren Login Gertaerak: " + lg2);
 		List<LoginGertaera> lg3 = e.getLoginGertaerakv3(erab.getIzena());
 		System.out.println("3.3.3 => " + erab.getIzena() + "ren Login Gertaerak: " + lg3);
-		System.out.println("3.4 => "+erab.getGertaerak());
+		System.out.println("3.4 => " + erab.getGertaerak());
+		LoginGertaera lgAne = e.createAndStoreLoginGertaera("Ane", true, null);
+		System.out.println("4.1 => " + lgAne);
+		e.createAndStoreErabiltzailea("Nekane", "127", "ikaslea");
+		e.createAndStoreLoginGertaera("Nekane", true, new Date());
+		System.out.println("4.2.1 => " + e.getLoginGertaerak());
+		boolean res = e.deleteErabiltzailea("Nekane");
+		System.out.println("4.2.2 => " + e.getLoginGertaerak());
+		erab= e.createAndStoreErabiltzaileaLoginGertaeraBatekin("Peru","128","ikaslea",true,new Date());
+		System.out.println("4.3.1 => " + e.getErabiltzaileak());
+		System.out.println("4.3.2 => Erabiltzailea: " +erab+" Bere gertaerak: "+erab.getGertaerak());
+		System.out.println("4.3.3 => " + e.getLoginGertaerak());
 	}
 }

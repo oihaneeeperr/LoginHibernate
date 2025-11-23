@@ -2,6 +2,7 @@ package eredua.domeinua;
 
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -13,7 +14,10 @@ public class Erabiltzailea {
 	private String izena;
 	private String pasahitza;
 	private String mota;
-	@OneToMany(targetEntity=LoginGertaera.class, mappedBy="erabiltzailea", fetch=FetchType.EAGER)
+	@OneToMany(targetEntity = LoginGertaera.class, 
+	           mappedBy = "erabiltzailea",
+	           cascade = {CascadeType.REMOVE, CascadeType.PERSIST}, 
+	           fetch = FetchType.EAGER)
 	private Set<LoginGertaera> gertaerak;
 
 	public Erabiltzailea() {
