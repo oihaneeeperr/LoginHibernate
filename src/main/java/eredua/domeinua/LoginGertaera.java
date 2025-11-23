@@ -4,6 +4,7 @@ import java.util.Date;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 
@@ -14,7 +15,7 @@ public class LoginGertaera {
 	private Long id;
 	private String deskribapena;
 	private Date data;
-	@ManyToOne
+	@ManyToOne(targetEntity=Erabiltzailea.class, fetch=FetchType.EAGER) 
 	private Erabiltzailea erabiltzailea;
 	private boolean login;
 

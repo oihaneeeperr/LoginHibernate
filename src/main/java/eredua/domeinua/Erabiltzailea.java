@@ -1,7 +1,11 @@
 package eredua.domeinua;
 
+import java.util.Set;
+
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Erabiltzailea {
@@ -9,8 +13,18 @@ public class Erabiltzailea {
 	private String izena;
 	private String pasahitza;
 	private String mota;
+	@OneToMany(targetEntity=LoginGertaera.class, mappedBy="erabiltzailea", fetch=FetchType.EAGER)
+	private Set<LoginGertaera> gertaerak;
 
 	public Erabiltzailea() {
+	}
+
+	public Set<LoginGertaera> getGertaerak() {
+		return gertaerak;
+	}
+
+	public void setGertaerak(Set<LoginGertaera> gertaerak) {
+		this.gertaerak = gertaerak;
 	}
 
 	public String getMota() {
@@ -36,8 +50,8 @@ public class Erabiltzailea {
 	public void setPasahitza(String pasahitza) {
 		this.pasahitza = pasahitza;
 	}
-	
+
 	public String toString() { // Erabiltzailea
-		return izena+"/"+pasahitza+"/"+mota;
-		}
+		return izena + "/" + pasahitza + "/" + mota;
+	}
 }
