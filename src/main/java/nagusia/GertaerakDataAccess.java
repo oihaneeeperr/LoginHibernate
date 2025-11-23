@@ -212,33 +212,33 @@ public class GertaerakDataAccess {
 	}
 
 	public Erabiltzailea createAndStoreErabiltzaileaLoginGertaeraBatekin(String izena, String pasahitza, String mota,
-		boolean login, Date data) {
+			boolean login, Date data) {
 		EntityManager em = JPAUtil.getEntityManager();
 		try {
 			em.getTransaction().begin();
-			
+
 			Erabiltzailea e = new Erabiltzailea();
 			e.setIzena(izena);
 			e.setPasahitza(pasahitza);
 			e.setMota(mota);
-			
+
 			LoginGertaera lg = new LoginGertaera();
 			lg.setErabiltzailea(e);
 			lg.setLogin(login);
 			lg.setData(data);
-			
-		    //e.getGertaerak().add(lg);
-			//Set<LoginGertaera> gertaerak = new HashSet<>();
-			//gertaerak.add(lg);
-			//e.setGertaerak(gertaerak);
-			
-			HashSet<LoginGertaera> gs = new HashSet<>();
-	        gs.add(lg);
-	        e.setGertaerak(gs); 
-	        
-			em.persist(e);
-			//em.persist(lg);
-			
+
+			// e.getGertaerak().add(lg);
+			// Set<LoginGertaera> gertaerak = new HashSet<>();
+			// gertaerak.add(lg);
+			// e.setGertaerak(gertaerak);
+
+			// HashSet<LoginGertaera> gs = new HashSet<>();
+			// gs.add(lg);
+			// e.setGertaerak(gs);
+
+			// em.persist(e);
+			em.persist(lg);
+
 			em.getTransaction().commit();
 			return e;
 		} catch (Exception ex) {
@@ -250,6 +250,26 @@ public class GertaerakDataAccess {
 			em.close();
 		}
 	}
+
+	public Erabiltzailea getErabiltzailea(String erabiltzaileaIzena) {
+		EntityManager em = JPAUtil.getEntityManager();
+		Erabiltzailea result = null;
+		 try {
+		 em.getTransaction().begin();
+		 TypedQuery<Erabiltzailea> q = em.createQuery("select e from Erabiltzailea e where e.izena= :erabiltzaileaIzena", Erabiltzailea.class);
+		 q.setParameter("erabiltzaileaIzena", erabiltzaileaIzena);
+		 result = q.getSingleResult();
+		 em.getTransaction().commit();
+		 } catch (Exception e) {
+		 if (em.getTransaction().isActive()) {
+		 em.getTransaction().rollback();
+		 }
+		 System.out.println("Errorea erabiltzailea errekuperatzean: " + e.getMessage());
+		 } finally {
+		 em.close();
+		 }
+		 return result;
+		}
 
 	public static void main(String[] args) {
 		GertaerakDataAccess e = new GertaerakDataAccess();
@@ -282,9 +302,13 @@ public class GertaerakDataAccess {
 		System.out.println("4.2.1 => " + e.getLoginGertaerak());
 		boolean res = e.deleteErabiltzailea("Nekane");
 		System.out.println("4.2.2 => " + e.getLoginGertaerak());
-		erab= e.createAndStoreErabiltzaileaLoginGertaeraBatekin("Peru","128","ikaslea",true,new Date());
+		erab = e.createAndStoreErabiltzaileaLoginGertaeraBatekin("Peru", "128", "ikaslea", true, new Date());
 		System.out.println("4.3.1 => " + e.getErabiltzaileak());
-		System.out.println("4.3.2 => Erabiltzailea: " +erab+" Bere gertaerak: "+erab.getGertaerak());
+		System.out.println("4.3.2 => Erabiltzailea: " + erab + " Bere gertaerak: " + erab.getGertaerak());
 		System.out.println("4.3.3 => " + e.getLoginGertaerak());
+		System.out.println("4.4 => Erabiltzailea: " + erab); // Peru izango da
+		System.out.println("4.4.1 => "+erab.getGertaerak()); // erab objektuak ez du login gertaerarik
+		erab = e.getErabiltzailea("Peru");
+		System.out.println("4.4.2 => "+erab.getGertaerak()); // Orain bai: datu-basetik ekarri da eta!!
 	}
 }
