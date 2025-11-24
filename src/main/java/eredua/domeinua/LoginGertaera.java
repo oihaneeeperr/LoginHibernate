@@ -3,6 +3,8 @@ package eredua.domeinua;
 import java.util.Date;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +12,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 
+@NamedEntityGraph(name = "LoginGertaera.erabiltzailearekin", attributeNodes = @NamedAttributeNode("erabiltzailea"))
 @Entity
 public class LoginGertaera {
 	@Id
@@ -18,9 +21,7 @@ public class LoginGertaera {
 	private String deskribapena;
 	@Column(nullable = false)
 	private Date data;
-	@ManyToOne(targetEntity = Erabiltzailea.class, 
-	           cascade = CascadeType.PERSIST, 
-	           fetch = FetchType.EAGER)
+	@ManyToOne(targetEntity = Erabiltzailea.class, cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
 	private Erabiltzailea erabiltzailea;
 	private boolean login;
 
@@ -62,10 +63,10 @@ public class LoginGertaera {
 	public boolean isLogin() {
 		return login;
 	}
-	
+
 	public String toString() { // LoginGertaera
-		return id+"/"+deskribapena+"/"+data+"/"+erabiltzailea+"/"+login;
-		}
+		return id + "/" + deskribapena + "/" + data + "/" + erabiltzailea + "/" + login;
+	}
 
 	public void setLogin(boolean login) {
 		this.login = login;
